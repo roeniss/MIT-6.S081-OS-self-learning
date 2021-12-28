@@ -3,24 +3,18 @@
 #include "user/user.h"
 #include "kernel/fs.h"
 
-void 
-check_file(char *path)
-{
-    
-}
-
 // return slash-trimmed name
-char*
+char *
 trimmed_name(char *path)
 {
-  char *p;
+    char *p;
 
-  // Find first character after last slash.
-  for(p=path+strlen(path); p >= path && *p != '/'; p--)
-    ;
-  p++;
+    // Find first character after last slash.
+    for (p = path + strlen(path); p >= path && *p != '/'; p--)
+        ;
+    p++;
 
-  return p;
+    return p;
 }
 
 void find_file(char *path, char *filename)
@@ -48,7 +42,7 @@ void find_file(char *path, char *filename)
     switch (st.type)
     {
     case T_FILE:
-        if(strcmp(trimmed_name(path), filename) == 0)
+        if (strcmp(trimmed_name(path), filename) == 0)
         {
             printf("%s\n", path);
         }
@@ -63,20 +57,21 @@ void find_file(char *path, char *filename)
 
         strcpy(buf, path);
         p = buf + strlen(buf);
-        *p = '/';
-        p++;
+        if (*p != '/')
+        {
+            *p = '/';
+            p++;
+        }
 
         while (read(fd, &de, sizeof(de)) == sizeof(de))
         {
             if (de.inum == 0)
                 continue;
+            if (strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0)
+                continue;
+
             memmove(p, de.name, DIRSIZ);
             p[DIRSIZ] = 0;
-            char *t_name = trimmed_name(p);
-            if(strcmp(t_name, ".") == 0 || strcmp(t_name, "..") == 0)
-            {
-                continue;
-            }
             if (stat(buf, &st) < 0)
             {
                 printf("ls: cannot stat %s\n", buf);
